@@ -32,7 +32,6 @@ export const AppHttpRequests = () => {
   const deleteTodolist = (id: string) => {
     todolistsApi.deleteTodolist(id).then(() => setTodolists(todolists.filter((todolist) => todolist.id !== id)))
   }
-
   const changeTodolistTitle = (id: string, title: string) => {
     todolistsApi.changeTodolistTitle(id, title).then(() => {
       setTodolists(todolists.map((todolist) => (todolist.id === id ? { ...todolist, title } : todolist)))
@@ -44,7 +43,11 @@ export const AppHttpRequests = () => {
       setTasks({ ...tasks, [todolistId]: [res.data.data.item, ...tasks[todolistId]] })
     })
   }
-
+  const deleteTask = (todolistId: string, taskId: string) => {
+    tasksApi.deleteTask({ todolistId, taskId }).then(() => {
+      setTasks({ ...tasks, [todolistId]: tasks[todolistId].filter((task) => task.id !== taskId) })
+    })
+  }
   const changeTaskStatus = (e: ChangeEvent<HTMLInputElement>, task: DomainTask) => {
     const todolistId = task.todoListId
 
@@ -56,17 +59,29 @@ export const AppHttpRequests = () => {
       deadline: task.deadline,
       status: e.currentTarget.checked ? TaskStatus.Completed : TaskStatus.New,
     }
-    tasksApi.changeTaskStatus({ todolistId, taskId: task.id, model }).then((res) => {
+    tasksApi.updateTask({ todolistId, taskId: task.id, model }).then((res) => {
       setTasks({
         ...tasks,
         [todolistId]: tasks[todolistId].map((el) => (el.id === task.id ? res.data.data.item : el)),
       })
     })
   }
+  const changeTaskTitle = (task: any, title: string) => {
+    const todolistId = task.todoListId
 
-  const deleteTask = (todolistId: string, taskId: string) => {}
+    const model: UpdateTaskModel = {
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      startDate: task.startDate,
+      deadline: task.deadline,
+      title,
+    }
 
-  const changeTaskTitle = (task: any, title: string) => {}
+    tasksApi.updateTask({ todolistId, taskId: task.id, model }).then(() => {
+      setTasks({ ...tasks, [todolistId]: tasks[todolistId].map((t) => (t.id === task.id ? { ...t, ...model } : t)) })
+    })
+  }
 
   return (
     <div style={{ margin: "20px" }}>
